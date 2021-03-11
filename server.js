@@ -24,7 +24,7 @@ const campgroundsRouter = require('./routes/campgrounds');
 const reviewsRouter = require('./routes/reviews');
 // const MongoStore = require('connect-mongo');
 const MongoDBStore = require('connect-mongo');
-const dbUrl = 'mongodb://localhost:27017/yelp-camp';
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
 
 mongoose.connect(dbUrl, {
     useNewUrlParser: true,
@@ -56,21 +56,21 @@ server.use(mongoSanitize());
 //     touchAfter: 24 * 60 * 60
 // });
 
+const secret = process.env.SECRET || 'thisisasecret';
 const store = new MongoDBStore({
     mongoUrl: dbUrl,
-    secret: 'thisisasecret',
+    secret,
     touchAfter: 24 * 60 * 60
 }, session);
 
-// store.on('error', function(err){
-//     console.log('Session Store Error', err)
-// });
+store.on('error', function(err){
+    console.log('Session Store Error', err)
+});
 
-// const secret = process.env.SECRET || 'thisisasecret';
 const sessionConfig = {
     store,
     name: 'session',
-    secret: 'thisisasecret',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {

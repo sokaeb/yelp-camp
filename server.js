@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate'); // the 'engine' used to parse/run ejs in a layout
 const methodOverride = require('method-override');
 const server = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const session = require('express-session');
 const flash = require('connect-flash');
 const ExpressError = require('./utils/ExpressError');
@@ -22,9 +22,9 @@ const helmet = require('helmet');
 const usersRouter = require('./routes/users');
 const campgroundsRouter = require('./routes/campgrounds');
 const reviewsRouter = require('./routes/reviews');
-// const MongoStore = require('connect-mongo');
-// const dbUrl = process.env.DB_URL
-const dbUrl = 'mongodb://localhost:27017/yelp-camp';
+const MongoStore = require('connect-mongo');
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
+
 
 mongoose.connect(dbUrl, {
     useNewUrlParser: true,
@@ -50,11 +50,9 @@ server.use(methodOverride('_method'));
 server.use(express.static(path.join(__dirname, 'public')));
 server.use(mongoSanitize());
 
-const secret = process.env.SECRET || 'thisisasecret';
-
-// const store = new MongoStore({
+// const store = new MongoDBStore.create({
 //     url: dbUrl,
-//     secret,
+//     secret: process.env.SECRET || 'thisisasecret',
 //     touchAfter: 24 * 60 * 60
 // });
 
@@ -62,19 +60,23 @@ const secret = process.env.SECRET || 'thisisasecret';
 //     console.log('Session Store Error', err)
 // });
 
-const sessionConfig = {
-    // store,
-    name: 'session',
-    secret,
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        httpOnly: true,
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-        maxAge: 1000 * 60 * 60 * 24 * 7
-    }
-};
-server.use(session(sessionConfig));
+// const sessionConfig = {
+//     store,
+//     name: 'session',
+//     secret,
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: {
+//         httpOnly: true,
+//         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+//         maxAge: 1000 * 60 * 60 * 24 * 7
+//     }
+// };
+// server.use(session(sessionConfig));
+server.use(session({
+    secret: 'foo',
+    store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/yelp-camp', resave: false, saveUninitialized: true })
+}));
 server.use(flash());
 server.use(helmet());
 

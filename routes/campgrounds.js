@@ -13,7 +13,7 @@ router.route('/')
     .post(isLoggedIn, upload.array('image'), validateCampground, catchAsync(campgrounds.createCampground));
 
 
-// route to render a form to edit camp details
+// route to render a form to create camp details
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
 
 router.route('/:id')
